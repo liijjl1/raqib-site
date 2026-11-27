@@ -1,0 +1,72 @@
+name: Unzip uploaded project
+
+# Upload a .zip from the phone (Add file > Upload files) and this workflow
+# extracts it into the repository, removes the zip, and rebuilds GitHub Pages.
+on:
+  push:
+    paths:
+      - '*.zip'
+      - '.github/workflows/unzip.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: unzip
+  cancel-in-progress: false
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract the zip into the repository
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -e
+          git clone --depth 1 --branch "$BRANCH" "https://x-access-token:${TOKEN}@github.com/${REPO}.git" work
+          cd work
+          shopt -s nullglob
+          zips=(*.zip)
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "No zip file at the top of the repository. Nothing to do."
+            exit 0
+          fi
+          for z in "${zips[@]}"; do
+            echo "Extracting $z"
+            rm -rf /tmp/unzipped && mkdir /tmp/unzipped
+            unzip -qq -o "$z" -d /tmp/unzipped
+            rm -rf /tmp/unzipped/__MACOSX
+            git rm -q "$z"
+            src=/tmp/unzipped
+            entries=(/tmp/unzipped/* /tmp/unzipped/.[!.]*)
+            # A zip with one top folder (raqib-site/): copy what is inside that folder.
+            if [ ${#entries[@]} -eq 1 ] && [ -d "${entries[0]}" ]; then
+              src="${entries[0]}"
+            fi
+            # .git is never copied, and .github is skipped because this token may not change workflow files.
+            rm -rf "$src/.git" "$src/.github"
+            cp -a "$src"/. .
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The zip held nothing new."
+            exit 0
+          fi
+          git commit -q -m "Extract uploaded zip"
+          git push -q origin "HEAD:${BRANCH}"
+          echo "Files extracted and pushed."
+          # Commits made with this token do not start a Pages build by themselves, so ask for one.
+          if curl -fs -o /dev/null -X POST \
+               -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" \
+               "https://api.github.com/repos/${REPO}/pages/builds"; then
+            echo "GitHub Pages rebuild requested."
+          else
+            echo "GitHub Pages is not turned on yet (Settings > Pages). Skipped."
+          fi
