@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}المختبر{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>المختبر</h1>
+  <p>تقييم النماذج الثلاثة على {{ "{:,}".format(report.rows) }} سجل محاكى: 70٪ للتدريب و30٪ للاختبار. الصور محفوظة في المجلد static/reports/lab لتضعها في بحثك.</p>
+</section>
+{% include "_report.html" %}
+{% endblock %}

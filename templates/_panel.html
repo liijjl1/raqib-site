@@ -1,0 +1,87 @@
+{% set k = panel.kpis %}
+{% set f = panel.focus %}
+<section class="status" data-state="{{ 'alert' if panel.active else 'ok' }}">
+  <div>
+    <h2>{% if panel.active %}حادثة أمنية نشطة على {{ panel.active }} من الأجهزة{% else %}الشبكة آمنة{% endif %}</h2>
+    <p>{% if panel.active %}راجع قائمة الحوادث، واضغط على الجهاز المصاب لترى سبب الإنذار.{% else %}كل الأجهزة تعمل ضمن سلوكها الطبيعي.{% endif %}</p>
+  </div>
+  <div class="clock"><span>زمن المحاكاة</span><b class="data">{{ panel.clock }}</b><small>{{ 'تعمل' if panel.settings.running else 'متوقفة' }} · {{ panel.settings.speed }}×</small></div>
+</section>
+<section class="kpis">
+  <div class="kpi"><span>السجلات المحلَّلة</span><b class="data">{{ "{:,}".format(k.records) }}</b></div>
+  <div class="kpi"><span>نسبة الكشف (Recall)</span><b class="data">{{ k.recall|pct }}</b></div>
+  <div class="kpi"><span>الإنذارات الكاذبة (FPR)</span><b class="data">{{ k.fpr|pct(2) }}</b></div>
+  <div class="kpi"><span>متوسط زمن الاكتشاف</span><b>{% if k.mttd is not none %}<span class="data">{{ '%.1f'|format(k.mttd) }}</span> ث{% else %}—{% endif %}</b></div>
+  <div class="kpi"><span>زمن تحليل السجل</span><b class="data">{{ '%.2f ms'|format(k.latency_ms) if k.latency_ms is not none else '—' }}</b></div>
+  <div class="kpi"><span>الحوادث: حقيقية / كاذبة</span><b class="data">{{ k.true_incidents }} / {{ k.false_incidents }}</b></div>
+</section>
+<section class="panel">
+  <div class="panel-h"><h2 class="panel-title">الأجهزة</h2><span class="muted">اضغط على جهاز لفحصه</span></div>
+  <div class="devgrid">
+    {% for c in panel.cards %}
+    <button type="button" class="dev" data-device="{{ c.id }}" data-state="{{ c.state }}" aria-pressed="{{ 'true' if c.id == f.device.id else 'false' }}">
+      <span class="dev-name">{{ c.name }}</span>
+      <span class="dev-ip data">{{ c.ip }}</span>
+      <svg class="spark" viewBox="0 0 160 28" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{ c.spark }}"/></svg>
+      <span class="dev-risk">الخطر <b class="data">{{ c.risk|round|int }}</b>{% if c.state == 'incident' %}<span class="chip chip-crit">حادثة</span>{% elif c.state == 'suspect' %}<span class="chip chip-warn">مشتبه</span>{% endif %}</span>
+      <span class="bar"><i style="width: {{ c.risk|round(1) }}%"></i></span>
+      {% if c.attack %}<span class="sim-tag">هجوم محاكى: {{ ATTACK_NAMES[c.attack.kind] }}{{ ' (خفي)' if c.attack.stealthy else '' }}</span>{% endif %}
+    </button>
+    {% endfor %}
+  </div>
+</section>
+<div class="grid2">
+  <section class="panel">
+    <div class="panel-h"><h2 class="panel-title">فاحص الجهاز: {{ f.device.name }}</h2><span class="data muted">{{ f.device.ip }} · {{ DEVICE_NAMES[f.device.type] }}</span></div>
+    <svg class="chart" viewBox="0 0 {{ f.width }} {{ f.height }}" preserveAspectRatio="none" role="img" aria-label="درجة الخطر لآخر 90 ثانية">
+      {% for s in f.spans %}<rect class="att" x="{{ s.x }}" y="0" width="{{ s.w }}" height="{{ f.height }}"/>{% endfor %}
+      <line class="thr" x1="0" x2="{{ f.width }}" y1="{{ f.threshold_y }}" y2="{{ f.threshold_y }}"/>
+      {% for key in MODEL_KEYS %}<polyline class="ln ln-{{ key }}" points="{{ f.lines[key] }}"/>{% endfor %}
+      <polyline class="ln ln-final" points="{{ f.lines.final }}"/>
+    </svg>
+    <div class="legend">
+      {% for key in MODEL_KEYS %}<span class="key"><i class="sw sw-{{ key }}"></i>{{ MODEL_NAMES[key] }}</span>{% endfor %}
+      <span class="key"><i class="sw sw-final"></i>القرار النهائي</span>
+      <span class="key"><i class="sw sw-att"></i>هجوم حقيقي</span>
+      <span class="key"><i class="sw sw-thr"></i>العتبة 50</span>
+    </div>
+    {% if f.last %}
+    <div class="verdicts">
+      {% for key in MODEL_KEYS %}
+      {% set risk = f.last.risks[loop.index0] %}
+      <div class="verdict"><span>{{ MODEL_NAMES[key] }}</span><b class="data">{{ risk|round|int }}</b><span class="chip {{ 'chip-crit' if risk >= 50 else '' }}">{{ 'شاذ' if risk >= 50 else 'طبيعي' }}</span></div>
+      {% endfor %}
+    </div>
+    <p class="final">القرار النهائي: <b>{{ 'إنذار' if f.last.alarm else 'طبيعي' }}</b> · درجة الخطر {{ f.last.final|round|int }} · النوع حسب Random Forest: {{ ATTACK_NAMES[f.last.guess] if f.last.guess else '—' }}</p>
+    <h3 class="sub">لماذا؟ الخصائص الأبعد عن سلوك الجهاز الطبيعي</h3>
+    <ul class="why">
+      {% for r in f.last.reasons %}
+      <li>
+        <div class="why-h"><span>{{ FEATURE_NAMES[r.feature] }}</span><span class="data">{{ r.share|pct(0) }}</span></div>
+        <div class="why-v">الآن <b class="data">{{ '%.3g'|format(r.value) }}</b> · الطبيعي <b class="data">{{ '%.3g'|format(r.normal) }}</b></div>
+        <span class="bar"><i style="width: {{ (r.share * 100)|round(1) }}%"></i></span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+  <section class="panel">
+    <h2 class="panel-title">الحوادث</h2>
+    {% if panel.incidents %}
+    <ul class="incs">
+      {% for i in panel.incidents %}
+      <li class="inc" data-active="{{ 1 if i.active else 0 }}">
+        <div class="inc-top"><b>{{ ATTACK_NAMES.get(i.guess, 'نمط غير معروف') }}</b><span class="chip {{ 'chip-crit' if i.active else '' }}">{{ 'نشطة' if i.active else 'مغلقة' }}</span></div>
+        <div class="muted">#{{ i.id }} · {{ i.name }} · بدأت عند الثانية {{ i.start }} · المدة {{ i.duration }} ث</div>
+        <div class="inc-foot">
+          {% for key in MODEL_KEYS %}<span class="mod {{ 'on' if i.hits[key] else '' }}">{{ key|upper }}</span>{% endfor %}
+          <span class="truth {{ 'ok' if i.truth else 'bad' }}">{{ 'هجوم حقيقي: ' ~ ATTACK_NAMES[i.truth] if i.truth else 'إنذار كاذب' }}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted empty">لا توجد حوادث بعد.</p>
+    {% endif %}
+  </section>
+</div>

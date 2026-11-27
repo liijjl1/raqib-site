@@ -1,0 +1,23 @@
+# Files Git must never upload.
+
+# What the site creates while it runs: the session secret key, the database
+# (with password hashes), the trained models, and the report figures.
+instance/
+static/reports/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Archives (in case the zip is left inside the folder)
+*.zip
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

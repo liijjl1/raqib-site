@@ -1,0 +1,70 @@
+{% set r = report %}
+<section class="panel">
+  <h2 class="panel-title">ملخص التجربة</h2>
+  <dl class="facts">
+    <div><dt>السجلات بعد التنظيف</dt><dd class="data">{{ "{:,}".format(r.rows) }}</dd></div>
+    <div><dt>الخصائص بعد المعالجة</dt><dd class="data">{{ r.features }}</dd></div>
+    <div><dt>التدريب / الاختبار</dt><dd class="data">{{ "{:,}".format(r.train_rows) }} / {{ "{:,}".format(r.test_rows) }}</dd></div>
+    <div><dt>نسبة الهجمات</dt><dd class="data">{{ r.attack_share|pct }}</dd></div>
+    <div><dt>دورات Autoencoder</dt><dd class="data">{{ r.ae_epochs }} (الأفضل {{ r.ae_best_epoch }})</dd></div>
+  </dl>
+</section>
+<section class="panel">
+  <h2 class="panel-title">مقارنة النماذج على بيانات الاختبار</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>النموذج</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th><th>FPR</th><th>زمن التدريب</th><th>زمن السجل</th></tr></thead>
+      <tbody>
+        {% for row in r.table %}
+        <tr>
+          <td><i class="sw sw-{{ row.key }}"></i>{{ row.name }}</td>
+          {% for metric in ['accuracy', 'precision', 'recall', 'f1', 'auc', 'fpr'] %}<td class="data">{{ '%.3f'|format(row[metric]) }}</td>{% endfor %}
+          <td>{% if row.train_s is not none %}<span class="data">{{ '%.1f'|format(row.train_s) }}</span> ث{% else %}—{% endif %}</td>
+          <td class="data">{{ '%.0f µs'|format(row.micros) if row.micros is not none else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="note">العتبة: المئين 99 من درجات الحركة الطبيعية في التدريب، فيُتوقع أن يخطئ كل نموذج غير مُشرف في نحو 1٪ من الحركة الطبيعية. تصويت الأغلبية يُطلق الإنذار عندما يتفق نموذجان من ثلاثة.</p>
+</section>
+<section class="figs">
+  {% for fig in r.figures %}
+  <figure class="panel fig{{ ' fig-wide' if fig.wide else '' }}">
+    <img src="{{ url_for('static', filename='reports/' ~ r.folder ~ '/' ~ fig.file, v=r.stamp) }}" alt="{{ fig.caption }}" loading="lazy">
+    <figcaption>{{ fig.caption }}</figcaption>
+  </figure>
+  {% endfor %}
+</section>
+<div class="grid2">
+  <section class="panel">
+    <h2 class="panel-title">نسبة الكشف لكل نوع هجوم</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>الهجوم</th><th>العدد</th>{% for key in MODEL_KEYS %}<th>{{ key|upper }}</th>{% endfor %}<th>الأغلبية</th></tr></thead>
+        <tbody>
+          {% for row in r.per_attack %}
+          <tr><td>{{ ATTACK_NAMES.get(row.type, row.type) }}</td><td class="data">{{ "{:,}".format(row.count) }}</td>{% for key in MODEL_KEYS + ['vote'] %}<td class="data">{{ row[key]|pct(0) }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% if r.zero_day %}
+  <section class="panel">
+    <h2 class="panel-title">تجربة الهجوم المجهول (Zero-day)</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>الهجوم المخفي</th><th>RF</th><th>IF</th><th>AE</th></tr></thead>
+        <tbody>
+          {% for row in r.zero_day %}
+          <tr><td>{{ ATTACK_NAMES.get(row.type, row.type) }}</td>{% for key in ['rf', 'if', 'ae'] %}<td class="data">{{ row[key]|pct(0) }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% set worst = (r.zero_day|sort(attribute='rf'))[0] %}
+    <p class="insight">عندما أخفينا «{{ ATTACK_NAMES.get(worst.type, worst.type) }}» عن Random Forest كشف {{ worst.rf|pct(0) }} منه فقط، بينما كشف Autoencoder {{ worst.ae|pct(0) }}، لأن النماذج غير المُشرفة تتعلم شكل الحركة الطبيعية ولا تحتاج أن ترى الهجوم من قبل.</p>
+  </section>
+  {% endif %}
+</div>

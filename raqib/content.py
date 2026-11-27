@@ -1,0 +1,48 @@
+SETTINGS = {
+    "title_en": "Machine Learning-Based Anomaly Detection in IoT",
+    "title_ar": "كشف الشذوذ في شبكات إنترنت الأشياء باستخدام تعلّم الآلة",
+    "researchers": "علي محمد قاسم عيسى",
+    "supervisor": "",
+    "university": "جامعة شط العرب",
+    "college": "كلية العلوم",
+    "department": "قسم علوم الحاسوب",
+    "year": "2025 – 2026",
+    "email": "",
+}
+
+SETTING_LABELS = {
+    "title_en": "عنوان البحث بالإنجليزية",
+    "title_ar": "عنوان البحث بالعربية",
+    "researchers": "الباحثون (اسم في كل سطر)",
+    "supervisor": "المشرف",
+    "university": "الجامعة",
+    "college": "الكلية",
+    "department": "القسم",
+    "year": "العام الدراسي",
+    "email": "بريد التواصل (اختياري)",
+}
+
+REFERENCES = [
+    {"text": "Liu, F. T., Ting, K. M., & Zhou, Z.-H. (2008). Isolation Forest. In Proceedings of the 8th IEEE International Conference on Data Mining (ICDM), 413–422.",
+     "doi": "10.1109/ICDM.2008.17", "used": "أساس نموذج Isolation Forest."},
+    {"text": "Breiman, L. (2001). Random Forests. Machine Learning, 45(1), 5–32.",
+     "doi": "10.1023/A:1010933404324", "used": "أساس نموذج Random Forest."},
+    {"text": "Hinton, G. E., & Salakhutdinov, R. R. (2006). Reducing the dimensionality of data with neural networks. Science, 313(5786), 504–507.",
+     "doi": "10.1126/science.1127647", "used": "فكرة Autoencoder وعنق الزجاجة."},
+    {"text": "Chandola, V., Banerjee, A., & Kumar, V. (2009). Anomaly detection: A survey. ACM Computing Surveys, 41(3), Article 15.",
+     "doi": "10.1145/1541880.1541882", "used": "تعريف الشذوذ وأنواع طرق كشفه."},
+    {"text": "Meidan, Y., Bohadana, M., Mathov, Y., Mirsky, Y., Shabtai, A., Breitenbacher, D., & Elovici, Y. (2018). N-BaIoT: Network-based detection of IoT botnet attacks using deep autoencoders. IEEE Pervasive Computing, 17(3), 12–22.",
+     "doi": "", "used": "Autoencoder لكشف هجمات شبكات البوت في أجهزة إنترنت الأشياء."},
+    {"text": "Mirsky, Y., Doitshman, T., Elovici, Y., & Shabtai, A. (2018). Kitsune: An ensemble of autoencoders for online network intrusion detection. In Network and Distributed System Security Symposium (NDSS).",
+     "doi": "", "used": "كشف التسلل لحظياً بمجموعة Autoencoders."},
+    {"text": "Antonakakis, M., et al. (2017). Understanding the Mirai botnet. In Proceedings of the 26th USENIX Security Symposium, 1093–1110.",
+     "doi": "", "used": "هجمات أجهزة إنترنت الأشياء عبر Telnet وكلمات المرور الضعيفة."},
+    {"text": "Neto, E. C. P., Dadkhah, S., Ferreira, R., Zohourian, A., Lu, R., & Ghorbani, A. A. (2023). CICIoT2023: A real-time dataset and benchmark for large-scale attacks in IoT environment. Sensors, 23(13), 5941.",
+     "doi": "10.3390/s23135941", "used": "مجموعة بيانات حقيقية تقبلها صفحة «بياناتك»."},
+    {"text": "Moustafa, N. (2021). A new distributed architecture for evaluating AI-based security systems at the edge: Network TON_IoT datasets. Sustainable Cities and Society, 72, 102994.",
+     "doi": "10.1016/j.scs.2021.102994", "used": "مجموعة بيانات TON_IoT."},
+    {"text": "Moustafa, N., & Slay, J. (2015). UNSW-NB15: A comprehensive data set for network intrusion detection systems. In Military Communications and Information Systems Conference (MilCIS), 1–6.",
+     "doi": "", "used": "مجموعة بيانات UNSW-NB15."},
+    {"text": "Pedregosa, F., et al. (2011). Scikit-learn: Machine learning in Python. Journal of Machine Learning Research, 12, 2825–2830.",
+     "doi": "", "used": "المكتبة التي بُنيت بها النماذج الثلاثة."},
+]

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}بياناتك{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>بياناتك</h1>
+  <p>ارفع ملف CSV من مجموعة بيانات حقيقية مثل CICIoT2023 أو TON_IoT أو UNSW-NB15، فيدرّب رقيب النماذج الثلاثة عليه ويقيّمها، ويحفظ التقرير في قاعدة البيانات باسمك.</p>
+</section>
+<section class="panel">
+  <form id="uploadForm" class="upload" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label class="field">ملف CSV <input type="file" name="file" accept=".csv" required></label>
+    <label class="field">عمود التصنيف (اختياري) <input type="text" name="label_col" placeholder="يُكتشف تلقائياً" dir="ltr"></label>
+    <label class="field">قيمة الحركة الطبيعية (اختياري) <input type="text" name="normal_value" placeholder="مثل BenignTraffic" dir="ltr"></label>
+    <label class="field">أقصى عدد للسجلات
+      <select name="max_rows"><option value="20000">20,000</option><option value="50000" selected>50,000</option><option value="100000">100,000</option></select>
+    </label>
+    <div class="control-row">
+      <button class="btn btn-primary" type="submit">حلّل الملف</button>
+      <a class="btn" href="{{ url_for('sample_csv') }}">نزّل ملف تجربة</a>
+    </div>
+  </form>
+  <p class="note" id="busy" hidden>جارٍ التدريب والتقييم... قد يستغرق ذلك دقيقة أو أكثر حسب حجم الملف.</p>
+  {% if error %}<p class="errbox">{{ error }}</p>{% endif %}
+</section>
+{% endblock %}

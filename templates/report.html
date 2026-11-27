@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}تقرير {{ row.filename }}{% endblock %}
+{% block content %}
+{% set report = row.report %}
+<section class="view-head">
+  <h1>تقرير الملف <span class="data">{{ row.filename }}</span></h1>
+  <p>حلّله {{ row.owner or 'مستخدم محذوف' }} في <span class="data">{{ row.created_at }}</span>. عمود التصنيف <span class="data">{{ row.label_col }}</span>، وقيمة الحركة الطبيعية <span class="data">{{ row.normal_value }}</span>.</p>
+</section>
+{% if report.dropped %}<p class="note">أعمدة استُبعدت لأنها معرّفات أو تصنيفات إضافية قد تكشف الإجابة للنموذج: <span class="data">{{ report.dropped|join(', ') }}</span></p>{% endif %}
+{% include "_report.html" %}
+<form method="post" action="{{ url_for('delete_report', report_id=row.id) }}" class="danger-zone">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <button class="btn" type="submit" data-confirm="حذف هذا التقرير نهائياً؟">حذف التقرير</button>
+</form>
+{% endblock %}

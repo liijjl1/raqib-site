@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}المراجع{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>المراجع</h1>
+  <p>المصادر التي بُنيت عليها النماذج ومجموعات البيانات في هذا البحث، بأسلوب APA.</p>
+</section>
+<section class="panel">
+  <ol class="refs">
+    {% for ref in references %}
+    <li>
+      <p class="ref-text" dir="ltr">{{ ref.text }}{% if ref.doi %} <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener">doi:{{ ref.doi }}</a>{% endif %}</p>
+      <p class="muted">{{ ref.used }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

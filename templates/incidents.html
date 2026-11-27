@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}سجل الحوادث{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>سجل الحوادث</h1>
+  <p>كل حادثة تُغلق في المراقبة الحية تُحفظ هنا في قاعدة البيانات، مع حقيقتها: هجوم حقيقي من المحاكي أم إنذار كاذب.</p>
+</section>
+<section class="kpis">
+  <div class="kpi"><span>كل الحوادث المحفوظة</span><b class="data">{{ stats.total or 0 }}</b></div>
+  <div class="kpi"><span>هجمات حقيقية</span><b class="data">{{ stats.real or 0 }}</b></div>
+  <div class="kpi"><span>إنذارات كاذبة</span><b class="data">{{ stats.false or 0 }}</b></div>
+  <div class="kpi"><span>متوسط مدة الحادثة</span><b>{% if stats.duration %}<span class="data">{{ '%.1f'|format(stats.duration) }}</span> ث{% else %}—{% endif %}</b></div>
+</section>
+<section class="panel">
+  <div class="panel-h">
+    <div class="seg" role="group" aria-label="تصفية">
+      {% for key, label in [('all', 'الكل'), ('real', 'هجمات حقيقية'), ('false', 'إنذارات كاذبة')] %}<a href="{{ url_for('incidents', truth=key) }}" {% if truth == key %}aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+    </div>
+    {% if user.role == 'admin' and rows %}
+    <form method="post" action="{{ url_for('admin_clear_incidents') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn btn-small" type="submit" data-confirm="مسح كل سجل الحوادث؟">مسح السجل</button></form>
+    {% endif %}
+  </div>
+  {% if rows %}
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>#</th><th>الجهاز</th><th>النوع المتوقع</th><th>الحقيقة</th><th>المدة</th><th>أعلى خطر</th><th>النماذج</th><th>أطلقه</th><th>الوقت</th></tr></thead>
+      <tbody>
+        {% for i in rows %}
+        <tr>
+          <td class="data">{{ i.id }}</td>
+          <td>{{ i.device }}<br><span class="muted data">{{ i.ip }}</span></td>
+          <td>{{ ATTACK_NAMES.get(i.guess, 'نمط غير معروف') }}</td>
+          <td class="truth {{ 'ok' if i.truth else 'bad' }}">{{ ATTACK_NAMES[i.truth] if i.truth else 'إنذار كاذب' }}</td>
+          <td><span class="data">{{ i.duration }}</span> ث</td>
+          <td class="data">{{ i.peak|round|int }}</td>
+          <td>{% for key in MODEL_KEYS %}<span class="mod {{ 'on' if i['hits_' ~ key] else '' }}">{{ key|upper }}</span> {% endfor %}</td>
+          <td>{{ i.launched_by_name or ('تلقائي' if i.truth else '—') }}</td>
+          <td class="data">{{ i.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted empty">لا توجد حوادث محفوظة بعد. افتح <a href="{{ url_for('live') }}">المراقبة الحية</a> وانتظر حتى تُغلق أول حادثة.</p>
+  {% endif %}
+</section>
+{% if stats.by_type %}
+<section class="panel">
+  <h2 class="panel-title">الهجمات الحقيقية حسب النوع</h2>
+  <ul class="bars">
+    {% for t in stats.by_type %}
+    <li><span>{{ ATTACK_NAMES[t.type] }}</span><span class="bar"><i style="width: {{ (t.n / stats.real * 100)|round(1) }}%"></i></span><b class="data">{{ t.n }}</b></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}الإدارة{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>الإدارة</h1>
+  <p>المستخدمون وصلاحياتهم، ومعلومات المشروع التي تظهر في صفحتي «الفريق» و«عن البحث».</p>
+</section>
+<section class="panel">
+  <h2 class="panel-title">المستخدمون</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصلاحية</th><th>التقارير</th><th>تاريخ التسجيل</th><th></th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.name }}</td>
+          <td class="data">{{ u.username }}</td>
+          <td>{{ 'مدير' if u.role == 'admin' else 'محلل' }}</td>
+          <td class="data">{{ u.reports }}</td>
+          <td class="data">{{ u.created_at }}</td>
+          <td class="row-actions">
+            {% if u.id != user.id %}
+            <form method="post" action="{{ url_for('admin_role', user_id=u.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="role" value="{{ 'analyst' if u.role == 'admin' else 'admin' }}"><button class="btn btn-small" type="submit">{{ 'اجعله محللاً' if u.role == 'admin' else 'اجعله مديراً' }}</button></form>
+            <form method="post" action="{{ url_for('admin_delete_user', user_id=u.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn btn-small" type="submit" data-confirm="حذف هذا المستخدم؟">حذف</button></form>
+            {% else %}<span class="muted">أنت</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="panel">
+  <h2 class="panel-title">معلومات المشروع</h2>
+  <form method="post" action="{{ url_for('admin_settings') }}" class="settings">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    {% for key, label in labels.items() %}
+    <label class="field">{{ label }}
+      {% if key == 'researchers' %}<textarea name="{{ key }}" rows="3">{{ site[key] }}</textarea>{% else %}<input type="text" name="{{ key }}" value="{{ site[key] }}" {% if key in ('title_en', 'email') %}dir="ltr"{% endif %}>{% endif %}
+    </label>
+    {% endfor %}
+    <div class="control-row"><button class="btn btn-primary" type="submit">حفظ</button></div>
+  </form>
+</section>
+{% endblock %}

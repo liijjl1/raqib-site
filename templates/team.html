@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}الفريق{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>الفريق والمشرف</h1>
+  <p>{{ site.department }} · {{ site.college }} · {{ site.university }} · العام الدراسي {{ site.year }}</p>
+</section>
+<section class="people">
+  {% for name in site.researchers.splitlines() if name.strip() %}
+  <div class="panel person"><span class="avatar" aria-hidden="true">{{ name.strip()[:1] }}</span><b>{{ name.strip() }}</b><span class="muted">باحث</span></div>
+  {% endfor %}
+  {% if site.supervisor %}
+  <div class="panel person"><span class="avatar avatar-sup" aria-hidden="true">{{ site.supervisor[:1] }}</span><b>{{ site.supervisor }}</b><span class="muted">المشرف</span></div>
+  {% elif user and user.role == 'admin' %}
+  <a class="panel person person-empty" href="{{ url_for('admin') }}"><b>أضف اسم المشرف</b><span class="muted">من صفحة الإدارة</span></a>
+  {% endif %}
+</section>
+<section class="panel prose">
+  <h2>عن المشروع</h2>
+  <p>«رقيب» مشروع تخرج بعنوان «{{ site.title_ar }}» ({{ site.title_en }}). بُني بلغة Python: الموقع بإطار Flask، والنماذج بمكتبة scikit-learn، وقاعدة البيانات SQLite.</p>
+  {% if site.email %}<p>للتواصل: <span class="data">{{ site.email }}</span></p>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}التقارير{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>التقارير المحفوظة</h1>
+  <p>{{ 'كل تقارير المستخدمين (أنت مدير).' if user.role == 'admin' else 'تقارير الملفات التي حلّلتها.' }} يُحفظ كل تقرير في قاعدة البيانات مع أشكاله.</p>
+</section>
+<section class="panel">
+  {% if rows %}
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>#</th><th>الملف</th><th>السجلات</th><th>F1 (الأغلبية)</th><th>صاحبه</th><th>التاريخ</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr><td class="data">{{ r.id }}</td><td><a href="{{ url_for('report_page', report_id=r.id) }}">{{ r.filename }}</a></td><td class="data">{{ "{:,}".format(r.rows) }}</td><td class="data">{{ '%.3f'|format(r.f1) }}</td><td>{{ r.owner or '—' }}</td><td class="data">{{ r.created_at }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted empty">لا توجد تقارير بعد. <a href="{{ url_for('data_page') }}">حلّل ملفاً من صفحة «بياناتك»</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

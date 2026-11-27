@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}الرئيسية{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow data">{{ site.title_en }}</p>
+    <h1>رقيب يراقب أجهزة إنترنت الأشياء ويكشف الهجمات بتعلّم الآلة</h1>
+    <p class="lead">ثلاثة نماذج تحكم على كل سجل حركة يرسله الجهاز: Isolation Forest و Autoencoder يتعلمان شكل الحركة الطبيعية فقط، و Random Forest يتعلم من أمثلة الهجمات. القرار بتصويت الأغلبية، والحادثة تُفتح عندما يستمر الشذوذ.</p>
+    <div class="control-row">
+      <a class="btn btn-primary" href="{{ url_for('live') }}">ابدأ المراقبة الحية</a>
+      <a class="btn" href="{{ url_for('about') }}">اقرأ عن البحث</a>
+    </div>
+  </div>
+  <div class="hero-card panel" aria-label="نتائج المختبر">
+    <h2 class="panel-title">من نتائج المختبر</h2>
+    <div class="score-list">
+      {% for row in lab.table %}
+      <div class="score"><span><i class="sw sw-{{ row.key }}"></i>{{ row.name }}</span><b class="data">F1 {{ '%.3f'|format(row.f1) }}</b></div>
+      {% endfor %}
+    </div>
+    {% set worst = (lab.zero_day|sort(attribute='rf'))[0] %}
+    <p class="note">هجوم «{{ ATTACK_NAMES[worst.type] }}» عندما أخفيناه عن Random Forest كشف منه {{ worst.rf|pct(0) }}، وكشف Autoencoder {{ worst.ae|pct(0) }}.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 class="panel-title">كيف يعمل</h2>
+  <ol class="steps">
+    <li><b>جمع الحركة</b><span>كل جهاز يرسل كل ثانية سجلاً فيه تسع خصائص، مثل معدل الحزم وعدد المنافذ ونسبة الاتصالات الفاشلة.</span></li>
+    <li><b>تجهيز البيانات</b><span>تحويل النصوص إلى أعمدة، ولوغاريتم القيم الكبيرة، وتوحيد المقياس بقواعد تُتعلَّم من التدريب فقط.</span></li>
+    <li><b>ثلاثة نماذج</b><span>كل نموذج يعطي درجة خطر من 0 إلى 100، والعتبة 50 عند المئين 99 من الحركة الطبيعية.</span></li>
+    <li><b>القرار والحوادث</b><span>الإنذار عندما يتفق نموذجان، والحادثة تُفتح بإنذارين من آخر ثلاثة سجلات وتُحفظ في قاعدة البيانات.</span></li>
+  </ol>
+</section>
+
+<section class="features">
+  <a class="panel feature" href="{{ url_for('live') }}"><b>المراقبة الحية</b><span>اثنا عشر جهازاً، ومحاكي هجمات، وتفسير لسبب كل إنذار.</span></a>
+  <a class="panel feature" href="{{ url_for('lab') }}"><b>المختبر</b><span>Accuracy و F1 و ROC-AUC ومصفوفات الالتباس على {{ "{:,}".format(lab.rows) }} سجل.</span></a>
+  <a class="panel feature" href="{{ url_for('data_page') }}"><b>بياناتك</b><span>ارفع ملف CSV من CICIoT2023 أو TON_IoT واحصل على تقرير كامل.</span></a>
+  <a class="panel feature" href="{{ url_for('incidents') }}"><b>سجل الحوادث</b><span>كل حادثة مغلقة محفوظة في قاعدة البيانات مع حقيقتها ومن أطلق الهجوم.</span></a>
+  <a class="panel feature" href="{{ url_for('reports') }}"><b>التقارير</b><span>تقارير تحليل ملفاتك محفوظة لكل مستخدم، مع الأشكال.</span></a>
+  <a class="panel feature" href="{{ url_for('register') }}"><b>الحسابات</b><span>تسجيل دخول بكلمات مرور مشفّرة، وصلاحيات مدير ومحلل.</span></a>
+</section>
+{% endblock %}

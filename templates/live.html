@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}المراقبة الحية{% endblock %}
+{% block content %}
+<section class="view-head">
+  <h1>المراقبة الحية</h1>
+  <p>اثنا عشر جهازاً ذكياً ترسل سجلاً عن حركتها كل ثانية، والنماذج الثلاثة تحكم على كل سجل. أطلق هجوماً من المحاكي وراقب كيف يُكتشف.</p>
+</section>
+<section class="panel" aria-label="التحكم في المحاكاة">
+  <div class="control-row">
+    <button class="btn" type="button" data-toggle-run data-running="{{ '1' if panel.settings.running else '0' }}">{{ 'إيقاف مؤقت' if panel.settings.running else 'تشغيل' }}</button>
+    <label class="field">السرعة
+      <select id="speed">{% for s in [1, 2, 4] %}<option value="{{ s }}" {% if s == panel.settings.speed %}selected{% endif %}>{{ s }}×</option>{% endfor %}</select>
+    </label>
+    <label class="field">قرار الإنذار
+      <select id="policy">{% for key, name in policies.items() %}<option value="{{ key }}" {% if key == panel.settings.policy %}selected{% endif %}>{{ name }}</option>{% endfor %}</select>
+    </label>
+    <label class="field">الحساسية (مئين العتبة)
+      <select id="sensitivity">{% for p in [95.0, 99.0, 99.5, 99.9] %}<option value="{{ p }}" {% if p == panel.settings.sensitivity %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+    </label>
+    <label class="check"><input type="checkbox" id="auto" {% if panel.settings.auto_attacks %}checked{% endif %}> هجمات تلقائية</label>
+    <button class="btn" type="button" data-reset>تصفير الإحصاءات</button>
+  </div>
+</section>
+<section class="panel" aria-label="محاكي الهجمات">
+  <h2 class="panel-title">محاكي الهجمات</h2>
+  <form id="attackForm" class="control-row">
+    <label class="field">الجهاز المستهدف
+      <select name="device">{% for d in devices %}<option value="{{ loop.index0 }}">{{ d.name }}</option>{% endfor %}</select>
+    </label>
+    <label class="field">نوع الهجوم
+      <select name="kind">{% for a in attacks %}<option value="{{ a }}">{{ ATTACK_NAMES[a] }}</option>{% endfor %}</select>
+    </label>
+    <label class="field">المدة
+      <select name="duration"><option value="15">15 ثانية</option><option value="30" selected>30 ثانية</option><option value="60">60 ثانية</option></select>
+    </label>
+    <label class="check"><input type="checkbox" name="stealthy" value="1"> نسخة خفية</label>
+    <button class="btn btn-danger" type="submit">إطلاق الهجوم</button>
+    <button class="btn" type="button" data-stop>إيقاف كل الهجمات</button>
+  </form>
+</section>
+<div id="panel">{% include "_panel.html" %}</div>
+{% endblock %}
